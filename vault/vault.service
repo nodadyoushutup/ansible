@@ -1,0 +1,18 @@
+[Unit]
+Description=Vault Server
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=vault
+Group=1000
+ExecStart=/usr/bin/vault server -config=/etc/vault.d/vault.hcl -log-level=debug
+ExecReload=/bin/kill -HUP $MAINPID
+LimitNOFILE=65536
+Restart=on-failure
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vault
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+---
+- name: Configure Ansible User
+  hosts: all
+  become: true
+  tasks:
+    - name: Add user
+      ansible.builtin.user:
+        name: ansible
+        comment: "ansible"
+        shell: /bin/bash
+        uid: "1102"
+        group: "1000"
+        password: "$6$rounds=656000$.N95fLm9WxYyGGYx$D7XcWb7BLbqpDtU7GjQCCXLVlBvaxFhYWPgzY/J24cHNqVqcc7rvMdonMK76PP2PoWpvxQi8/op9uLwOk6aOO/"

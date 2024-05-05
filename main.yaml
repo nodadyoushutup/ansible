@@ -1,0 +1,10 @@
+---
+# Update and install core packages
+- import_playbook: init/update.yaml
+- import_playbook: init/core_packages.yaml
+
+# Create users
+- import_playbook: user/ansible.yaml
+- import_playbook: user/terraform.yaml
+- import_playbook: user/spacelift.yaml
+- import_playbook: user/vault.yaml

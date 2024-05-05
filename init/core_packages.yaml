@@ -1,0 +1,14 @@
+---
+- name: Install core packages
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install packages
+      ansible.builtin.apt:
+        name:
+          - nano
+          - net-tools
+          - gpg
+          - wget
+        state: latest
+      when: ansible_facts.packages['apt'] is defined

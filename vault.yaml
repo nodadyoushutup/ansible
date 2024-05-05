@@ -1,0 +1,101 @@
+---
+- import_playbook: init/update.yaml
+- name: Import HashiCorp GPG Key and Setup Vault
+  hosts: "192.168.0.100"
+  become: true
+  tasks:
+    - name: Download HashiCorp GPG key
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /tmp/hashicorp.gpg
+        mode: '0644'
+
+    - name: Import GPG key into trusted keyring
+      ansible.builtin.shell:
+        cmd: gpg --dearmor --yes -o /usr/share/keyrings/hashicorp-archive-keyring.gpg < /tmp/hashicorp.gpg
+      args:
+        warn: false
+
+    - name: Remove downloaded GPG key file
+      ansible.builtin.file:
+        path: /tmp/hashicorp.gpg
+        state: absent
+
+    - name: Verify GPG key
+      ansible.builtin.shell:
+        cmd: gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
+
+    - name: Generate HashiCorp repo string
+      ansible.builtin.shell:
+        cmd: >
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" > /tmp/hashicorp_repo.list
+      args:
+        warn: false
+
+    - name: Add HashiCorp repo to apt sources
+      ansible.builtin.copy:
+        src: /tmp/hashicorp_repo.list
+        dest: /etc/apt/sources.list.d/hashicorp.list
+        owner: root
+        group: root
+        mode: "0644"
+        remote_src: yes
+
+    - name: Remove HashiCorp repo string file
+      ansible.builtin.file:
+        path: /tmp/hashicorp_repo.list
+        state: absent
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Vault
+      ansible.builtin.apt:
+        name: vault
+        state: latest
+
+    # - name: Set VAULT_ADDR environment variable globally
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/environment
+    #     line: "VAULT_ADDR='http://192.168.0.100:8200'"
+    #     create: yes
+
+
+    # - name: Create Vault configuration file with UI enabled
+    #   ansible.builtin.copy:
+    #     src: vault.hcl
+    #     dest: /etc/vault.d/vault.hcl
+    #     owner: vault
+    #     group: "1000"
+    #     mode: '0640'
+        
+    # - name: Create the Vault data directory
+    #   ansible.builtin.file:
+    #     path: "./vault/data"
+    #     state: directory
+    #     owner: vault
+    #     group: "1000"
+    #     mode: '0755'
+
+
+    # - name: Check if Vault is initialized
+    #   ansible.builtin.command:
+    #     cmd: vault status
+    #   register: vault_status
+    #   ignore_errors: yes
+    #   environment:
+    #     VAULT_ADDR: 'http://127.0.0.1:8200'
+
+    # - name: Initialize Vault
+    #   ansible.builtin.command:
+    #     cmd: vault operator init
+    #   register: vault_init_output
+    #   when: "'not initialized' in vault_status.stdout or 'Error' in vault_status.stderr"
+    #   environment:
+    #     VAULT_ADDR: 'http://127.0.0.1:8200'
+
+    # - name: Display initialization info
+    #   ansible.builtin.debug:
+    #     msg: "{{ vault_init_output.stdout }}"

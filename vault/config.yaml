@@ -1,0 +1,139 @@
+---
+- import_playbook: ../init/update.yaml
+- import_playbook: ../vault/install.yaml
+- name: Configure Vault
+  hosts: "192.168.0.100"
+  become: true
+  tasks:
+    - name: Create Vault configuration file
+      ansible.builtin.copy:
+        src: vault.hcl
+        dest: /etc/vault.d/vault.hcl
+        owner: vault
+        group: "1000"
+        mode: '0640'
+
+    - name: Create Vault service file
+      ansible.builtin.copy:
+        src: vault.service
+        dest: /etc/systemd/system/vault.service
+        owner: vault
+        group: "1000"
+        mode: '0640'
+    
+    - name: Create the Vault data directory
+      ansible.builtin.file:
+        path: "/opt/vault/data"
+        state: directory
+        owner: vault
+        group: "1000"
+        mode: "2775"
+
+    - name: Start and enable Vault service
+      ansible.builtin.systemd:
+        name: vault
+        state: started
+        enabled: true
+
+    - name: Wait for Vault service to be running
+      ansible.builtin.service_facts:
+      register: svc
+
+    - name: Ensure Vault service is running
+      ansible.builtin.meta: noop
+      when: "'vault' in svc.services and svc.services['vault'].state == 'running'"
+      retries: 5
+      delay: 2
+      until: "'vault' in svc.services and svc.services['vault'].state == 'running'"
+
+    - name: Check Vault Initialization Status
+      command: vault status -format=json
+      register: vault_status
+      ignore_errors: true
+      failed_when: "'initialized' not in vault_status.stdout"
+
+    - name: Parse Vault Status Output
+      set_fact:
+        vault_status: "{{ vault_status.stdout | from_json }}"
+
+    - name: Initialize Vault and capture the output
+      ansible.builtin.shell:
+        cmd: vault operator init -format=json > /opt/vault/data/vault_init.json
+      register: vault_init
+      ignore_errors: true
+      when: not vault_status.initialized
+
+    - name: Check if initialization file exists
+      ansible.builtin.stat:
+        path: /opt/vault/data/vault_init.json
+      register: vault_init_file
+
+    - name: Fail if file does not exist
+      ansible.builtin.fail:
+        msg: "Initialization file was not created."
+      when: not vault_init_file.stat.exists
+
+    - name: Slurp the Vault initialization JSON file
+      ansible.builtin.slurp:
+        src: "/opt/vault/data/vault_init.json"
+      register: vault_init_data
+
+    - name: Decode the Vault initialization data
+      set_fact:
+        vault_init_json: "{{ vault_init_data['content'] | b64decode | from_json }}"
+
+    - name: Set VAULT_TOKEN environment variable globally
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        line: "VAULT_TOKEN='{{ vault_init_json.root_token }}'"
+        create: yes
+
+    - name: Unseal Vault using first key
+      ansible.builtin.shell:
+        cmd: "vault operator unseal {{ vault_init_json.unseal_keys_b64[0] }}"
+      register: unseal_output_1
+      ignore_errors: true
+
+    - name: Unseal Vault using second key
+      ansible.builtin.shell:
+        cmd: "vault operator unseal {{ vault_init_json.unseal_keys_b64[1] }}"
+      register: unseal_output_2
+      ignore_errors: true
+
+    - name: Unseal Vault using third key
+      ansible.builtin.shell:
+        cmd: "vault operator unseal {{ vault_init_json.unseal_keys_b64[2] }}"
+      register: unseal_output_3
+      ignore_errors: true
+
+    - name: Enable secrets engine KV
+      ansible.builtin.shell:
+        cmd: vault secrets enable -path=kv kv
+      ignore_errors: true
+      when: not vault_status.initialized
+
+    - name: Enable secrets engine SSH
+      ansible.builtin.shell:
+        cmd: vault secrets enable -path=ssh-client-signer ssh
+      ignore_errors: true
+      when: not vault_status.initialized
+
+    - name: Generate Vault CA SSH Signing Key
+      ansible.builtin.shell:
+        cmd: vault write ssh-client-signer/config/ca generate_signing_key=true
+      ignore_errors: true
+      when: not vault_status.initialized
+
+    - name: Create SSH admin config file
+      ansible.builtin.copy:
+        src: admin.json
+        dest: /opt/vault/data
+        owner: vault
+        group: "1000"
+        mode: '0640'
+
+    - name: Create admin SSH role
+      ansible.builtin.shell:
+        cmd: vault write ssh-client-signer/roles/admin @/opt/vault/data/admin.json
+      ignore_errors: true
+      when: not vault_status.initialized
