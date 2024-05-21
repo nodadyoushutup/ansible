@@ -1,0 +1,38 @@
+---
+- name: "Ensure the db user exists"
+  postgresql_user:
+    state: present
+    name: radarr
+    password: radarr
+  become: yes
+  become_user: postgres
+
+- name: "Ensure the app database exists and is owned by radarr"
+  postgresql_db:
+    name: radarr
+    owner: radarr
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: "Grant db user access to app db"
+  postgresql_privs:
+    type: database
+    database: radarr
+    roles: radarr
+    grant_option: no
+    privs: all
+  become: yes
+  become_user: postgres
+
+- name: "Allow md5 connection for the db user"
+  postgresql_pg_hba:
+    dest: "/etc/postgresql/14/main/pg_hba.conf"
+    contype: host
+    databases: all
+    method: md5
+    users: radarr
+    create: true
+  become: yes
+  become_user: postgres
+  notify: restart postgres
