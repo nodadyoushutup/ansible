@@ -1,0 +1,105 @@
+---
+- hosts: postgresql
+  become: yes
+
+  vars_files:
+    - postgresql-vars.yml
+
+  pre_tasks:
+    - name: "Install packages"
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - postgresql
+        - postgresql-contrib
+
+    - name: "Install Python packages"
+      pip:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - psycopg2-binary
+
+  tasks:
+    - name: "Find out if PostgreSQL is initialized"
+      ansible.builtin.stat:
+        path: "/etc/postgresql/14/main/pg_hba.conf"
+      register: postgres_data
+
+    - name: "Initialize PostgreSQL"
+      shell: "sudo -u postgres /usr/lib/postgresql/14/bin/initdb -D /var/lib/postgresql/14/main"
+      when: not postgres_data.stat.exists
+
+    - name: "Start and enable PostgreSQL service"
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: "Ensure the db user exists"
+      postgresql_user:
+        state: present
+        name: radarr
+        password: radarr
+      become: yes
+      become_user: postgres
+
+    - name: "Ensure the app database exists and is owned by radarr"
+      postgresql_db:
+        name: radarr
+        owner: radarr
+        state: present
+      become: yes
+      become_user: postgres
+
+    - name: "Grant db user access to app db"
+      postgresql_privs:
+        type: database
+        database: radarr
+        roles: radarr
+        grant_option: no
+        privs: all
+      become: yes
+      become_user: postgres
+
+    - name: "Configure PostgreSQL to allow password authentication"
+      lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        regexp: '^local\s+all\s+all\s+peer'
+        line: 'local   all             all                                     md5'
+        state: present
+
+    - name: "Allow md5 connection for the db user"
+      postgresql_pg_hba:
+        dest: "/etc/postgresql/14/main/pg_hba.conf"
+        contype: host
+        databases: all
+        method: md5
+        users: radarr
+        create: true
+      become: yes
+      become_user: postgres
+      notify: restart postgres
+
+    - name: "Configure PostgreSQL to listen on all addresses"
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: '^#listen_addresses = '
+        line: "listen_addresses = '*'"
+        state: present
+      notify: restart postgres
+
+    - name: "Allow md5 connection for all hosts"
+      lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        line: "host    all             all             0.0.0.0/0               md5"
+        state: present
+      notify: restart postgres
+
+  handlers:
+    - name: restart postgres
+      service:
+        name: postgresql
+        state: restarted

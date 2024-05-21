@@ -1,0 +1,79 @@
+---
+- name: Install PostgreSQL and create a database
+  hosts: database
+  become: yes
+  vars:
+    postgres_password: 'postgres'  # Set your postgres password here
+  tasks:
+    - name: Update apt package list
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - postgresql
+          - postgresql-contrib
+          - python3-pip
+          - acl
+        state: present
+
+    - name: Install psycopg2 library
+      pip:
+        name: psycopg2-binary
+        state: present
+
+    - name: Ensure PostgreSQL service is running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Temporarily change postgres user authentication to trust
+      lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        regexp: '^local\s+all\s+postgres\s+peer'
+        line: 'local   all             postgres                                trust'
+        state: present
+
+    - name: Restart PostgreSQL service to apply authentication changes
+      service:
+        name: postgresql
+        state: restarted
+
+    - name: Set PostgreSQL password for the postgres user
+      become_user: postgres
+      shell: psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_password }}';"
+
+    - name: Create PostgreSQL user
+      become_user: postgres
+      shell: psql -c "CREATE USER radarr WITH PASSWORD 'radarr';"
+
+    - name: Create PostgreSQL database
+      become_user: postgres
+      shell: psql -c "CREATE DATABASE radarr OWNER radarr;"
+
+    - name: Revert postgres user authentication to md5
+      lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        regexp: '^local\s+all\s+postgres\s+trust'
+        line: 'local   all             postgres                                md5'
+        state: present
+
+    - name: Allow remote connections to PostgreSQL (edit postgresql.conf)
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: '^#listen_addresses ='
+        line: "listen_addresses = '*'"
+        state: present
+
+    - name: Allow remote connections to PostgreSQL (edit pg_hba.conf)
+      lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        line: "host    all             all             0.0.0.0/0            md5"
+        state: present
+
+    - name: Restart PostgreSQL service to apply final configuration
+      service:
+        name: postgresql
+        state: restarted

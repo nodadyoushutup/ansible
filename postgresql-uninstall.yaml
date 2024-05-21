@@ -1,0 +1,47 @@
+---
+- name: Uninstall PostgreSQL
+  hosts: database
+  become: yes
+  tasks:
+    - name: Stop PostgreSQL service
+      service:
+        name: postgresql
+        state: stopped
+
+    - name: Uninstall PostgreSQL packages
+      apt:
+        name:
+          - postgresql
+          - postgresql-contrib
+        state: absent
+        purge: yes
+
+    - name: Remove PostgreSQL data directory
+      file:
+        path: /var/lib/postgresql
+        state: absent
+        recurse: yes
+
+    - name: Remove PostgreSQL configuration directory
+      file:
+        path: /etc/postgresql
+        state: absent
+        recurse: yes
+
+    - name: Remove PostgreSQL log directory
+      file:
+        path: /var/log/postgresql
+        state: absent
+        recurse: yes
+
+    - name: Remove PostgreSQL binaries
+      file:
+        path: /usr/lib/postgresql
+        state: absent
+        recurse: yes
+
+    - name: Remove PostgreSQL user and group
+      user:
+        name: postgres
+        state: absent
+        remove: yes
