@@ -28,6 +28,14 @@
     group: apps
     mode: '0755'
 
+- name: Create /mnt/epool/config directory
+  ansible.builtin.file:
+    path: /mnt/epool/config
+    state: directory
+    owner: apps
+    group: apps
+    mode: '0755'
+
 - name: Copy /mnt/workspace/fstab to /etc/fstab
   ansible.builtin.copy:
     src: /mnt/workspace/fstab
