@@ -6,3 +6,4 @@
     - role: apt_update_upgrade
     - role: core_package
     - role: configure_git
+    - role: mount_nfs
