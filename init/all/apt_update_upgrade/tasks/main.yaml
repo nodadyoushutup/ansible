@@ -1,0 +1,10 @@
+---
+- name: Update APT package list
+  apt:
+    update_cache: yes
+  become: true
+
+- name: Upgrade all APT packages
+  apt:
+    upgrade: dist
+  become: true
