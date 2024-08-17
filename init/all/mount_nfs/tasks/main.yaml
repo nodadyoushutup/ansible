@@ -33,7 +33,6 @@
     owner: apps
     group: apps
     mode: '0755'
-    creates: /mnt/epool
   become: true
 
 - name: Create /mnt/epool/media directory
@@ -43,7 +42,6 @@
     owner: apps
     group: apps
     mode: '0755'
-    creates: /mnt/epool/media
   become: true
 
 - name: Create /mnt/epool/config directory
@@ -53,7 +51,6 @@
     owner: apps
     group: apps
     mode: '0755'
-    creates: /mnt/epool/config
   become: true
 
 - name: Copy /mnt/workspace/fstab to /etc/fstab
