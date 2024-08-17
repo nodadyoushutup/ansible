@@ -26,10 +26,6 @@
   become: true
   when: user_exists.rc != 0
 
-- name: Unmount all filesystems from fstab
-  ansible.builtin.command: umount -a
-  become: true
-
 - name: Check if /mnt/epool directory exists
   ansible.builtin.stat:
     path: /mnt/epool
