@@ -11,3 +11,32 @@
     group: apps
     shell: /bin/bash
     create_home: no
+
+- name: Create /mnt/epool directory
+  ansible.builtin.file:
+    path: /mnt/epool
+    state: directory
+    owner: apps
+    group: apps
+    mode: '0755'
+
+- name: Create /mnt/epool/media directory
+  ansible.builtin.file:
+    path: /mnt/epool/media
+    state: directory
+    owner: apps
+    group: apps
+    mode: '0755'
+
+- name: Copy /mnt/workspace/fstab to /etc/fstab
+  ansible.builtin.copy:
+    src: /mnt/workspace/fstab
+    dest: /etc/fstab
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Run "sudo mount -a"
+  ansible.builtin.command: mount -a
+  become: true
