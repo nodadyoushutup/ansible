@@ -1,2 +1,12 @@
-[postgresql]
-192.168.0.101
+vault ansible_host=146.115.179.178 ansible_port=10122
+monitoring ansible_host=146.115.179.178 ansible_port=10222
+database ansible_host=146.115.179.178 ansible_port=10322
+npm ansible_host=146.115.179.178 ansible_port=10422
+development ansible_host=146.115.179.178 ansible_port=10522
+k3s_master_1 ansible_host=146.115.179.178 ansible_port=20022
+k3s_master_2 ansible_host=146.115.179.178 ansible_port=20122
+k3s_master_3 ansible_host=146.115.179.178 ansible_port=20222
+k3s_worker_1 ansible_host=146.115.179.178 ansible_port=20322
+k3s_worker_2 ansible_host=146.115.179.178 ansible_port=20422
+k3s_worker_3 ansible_host=146.115.179.178 ansible_port=20522
+k3s_worker_4 ansible_host=146.115.179.178 ansible_port=20622
