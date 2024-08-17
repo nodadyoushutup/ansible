@@ -1,0 +1,12 @@
+---
+- name: Set Git user email
+  ansible.builtin.command: >
+    git config --global user.email "{{ git_email }}"
+  args:
+    creates: ~/.gitconfig
+
+- name: Set Git user name
+  ansible.builtin.command: >
+    git config --global user.name "{{ git_username }}"
+  args:
+    creates: ~/.gitconfig

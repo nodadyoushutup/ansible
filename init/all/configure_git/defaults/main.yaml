@@ -1,0 +1,3 @@
+---
+git_email: "{{ lookup('env', 'GIT_EMAIL') | default('default_email@example.com', true) }}"
+git_username: "{{ lookup('env', 'GIT_USERNAME') | default('default_username', true) }}"
