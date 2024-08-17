@@ -3,6 +3,7 @@
   ansible.builtin.group:
     name: apps
     gid: 568
+  become: true
 
 - name: Ensure the user 'apps' exists with a specific UID
   ansible.builtin.user:
@@ -11,6 +12,7 @@
     group: apps
     shell: /bin/bash
     create_home: no
+  become: true
 
 - name: Create /mnt/epool directory
   ansible.builtin.file:
@@ -19,6 +21,8 @@
     owner: apps
     group: apps
     mode: '0755'
+    creates: /mnt/epool
+  become: true
 
 - name: Create /mnt/epool/media directory
   ansible.builtin.file:
@@ -27,6 +31,8 @@
     owner: apps
     group: apps
     mode: '0755'
+    creates: /mnt/epool/media
+  become: true
 
 - name: Create /mnt/epool/config directory
   ansible.builtin.file:
@@ -35,6 +41,8 @@
     owner: apps
     group: apps
     mode: '0755'
+    creates: /mnt/epool/config
+  become: true
 
 - name: Copy /mnt/workspace/fstab to /etc/fstab
   ansible.builtin.copy:
