@@ -26,7 +26,12 @@
   become: true
   when: user_exists.rc != 0
 
-- name: Create /mnt/epool directory
+- name: Check if /mnt/epool directory exists
+  ansible.builtin.stat:
+    path: /mnt/epool
+  register: epool_dir
+
+- name: Create /mnt/epool directory if it does not exist
   ansible.builtin.file:
     path: /mnt/epool
     state: directory
@@ -34,8 +39,14 @@
     group: apps
     mode: '0755'
   become: true
+  when: not epool_dir.stat.exists
 
-- name: Create /mnt/epool/media directory
+- name: Check if /mnt/epool/media directory exists
+  ansible.builtin.stat:
+    path: /mnt/epool/media
+  register: epool_media_dir
+
+- name: Create /mnt/epool/media directory if it does not exist
   ansible.builtin.file:
     path: /mnt/epool/media
     state: directory
@@ -43,8 +54,14 @@
     group: apps
     mode: '0755'
   become: true
+  when: not epool_media_dir.stat.exists
 
-- name: Create /mnt/epool/config directory
+- name: Check if /mnt/epool/config directory exists
+  ansible.builtin.stat:
+    path: /mnt/epool/config
+  register: epool_config_dir
+
+- name: Create /mnt/epool/config directory if it does not exist
   ansible.builtin.file:
     path: /mnt/epool/config
     state: directory
@@ -52,6 +69,7 @@
     group: apps
     mode: '0755'
   become: true
+  when: not epool_config_dir.stat.exists
 
 - name: Copy /mnt/workspace/fstab to /etc/fstab
   ansible.builtin.copy:
