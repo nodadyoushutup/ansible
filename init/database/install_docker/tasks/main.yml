@@ -11,3 +11,30 @@
     - containerd
     - runc
   become: true
+
+- name: Update the APT package index
+  apt:
+    update_cache: yes
+  become: true
+
+- name: Install ca-certificates and curl
+  apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+  become: true
+
+- name: Create /etc/apt/keyrings directory with specific permissions
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+  become: true
