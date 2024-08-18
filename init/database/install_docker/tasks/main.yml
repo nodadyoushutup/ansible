@@ -83,16 +83,42 @@
     mode: '0644'
   become: true
 
-- name: Add Postgres user environment variable to user's .bashrc
+- name: Add environment variable to /etc/environment
   lineinfile:
-    path: "/home/{{ ansible_user }}/.bashrc"
-    line: "export POSTGRES_USER={{ lookup('env', 'POSTGRES_USER') | default('postgres', true) }}"
+    path: /etc/environment
+    line: "POSTGRES_USER={{ lookup('env', 'POSTGRES_USER') | default('postgres', true) }}"
     create: yes
   become: true
 
-- name: Add Postgres password environment variable to user's .bashrc
+- name: Add environment variable to /etc/environment
   lineinfile:
-    path: "/home/{{ ansible_user }}/.bashrc"
-    line: "export POSTGRES_PASSWORD={{ lookup('env', 'POSTGRES_PASSWORD') | default('postgres', true) }}"
+    path: /etc/environment
+    line: "POSTGRES_PASSWORD={{ lookup('env', 'POSTGRES_PASSWORD') | default('postgres', true) }}"
     create: yes
   become: true
+
+- name: Stop Docker Compose
+  shell: "docker-compose -f {{ compose_file_path }} down"
+  # args:
+  #   chdir: "{{ compose_file_dir }}"
+  become: true
+
+- name: Start Docker Compose
+  shell: "docker-compose -f {{ compose_file_path }} up -d"
+  # args:
+  #   chdir: "{{ compose_file_dir }}"
+  become: true
+
+# - name: Add Postgres user environment variable to user's .bashrc
+#   lineinfile:
+#     path: "/home/{{ ansible_user }}/.bashrc"
+#     line: "export POSTGRES_USER={{ lookup('env', 'POSTGRES_USER') | default('postgres', true) }}"
+#     create: yes
+#   become: true
+
+# - name: Add Postgres password environment variable to user's .bashrc
+#   lineinfile:
+#     path: "/home/{{ ansible_user }}/.bashrc"
+#     line: "export POSTGRES_PASSWORD={{ lookup('env', 'POSTGRES_PASSWORD') | default('postgres', true) }}"
+#     create: yes
+#   become: true
