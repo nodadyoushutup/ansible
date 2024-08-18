@@ -72,6 +72,6 @@
 - name: Copy docker-compose.yaml to home directory
   copy:
     src: /mnt/workspace/docker-compose.yaml
-    dest: "{{ ansible_env.HOME }}/docker-compose.yaml"
+    dest: "/home/{{ ansible_user }}/docker-compose.yaml"
     mode: '0644'
   become: true
