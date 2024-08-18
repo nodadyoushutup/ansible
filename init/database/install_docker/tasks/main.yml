@@ -45,9 +45,6 @@
     mode: '0644'
   become: true
 
----
-# tasks/main.yml
-
 - name: Add Docker APT repository
   shell: |
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
