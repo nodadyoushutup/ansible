@@ -4,4 +4,3 @@
   become: true
   roles:
     - role: install_docker
-      when: not ansible_check_mode
