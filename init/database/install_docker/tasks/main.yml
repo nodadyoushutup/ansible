@@ -40,11 +40,6 @@
     update_cache: yes
   become: true
 
-- name: Update apt cache after adding Docker repo
-  apt:
-    update_cache: yes
-  become: true
-
 - name: Install Docker packages
   apt:
     name:
