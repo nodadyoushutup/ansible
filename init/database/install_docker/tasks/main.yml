@@ -11,13 +11,11 @@
     - containerd
     - runc
   become: true
-  when: not ansible_check_mode
 
 - name: Update the APT package index
   apt:
     update_cache: yes
   become: true
-  when: not ansible_check_mode
 
 - name: Install ca-certificates and curl
   apt:
@@ -26,7 +24,6 @@
       - curl
     state: present
   become: true
-  when: not ansible_check_mode
 
 - name: Create /etc/apt/keyrings directory with specific permissions
   file:
@@ -34,7 +31,6 @@
     state: directory
     mode: '0755'
   become: true
-  when: not ansible_check_mode
 
 - name: Download Docker GPG key
   ansible.builtin.get_url:
@@ -42,14 +38,12 @@
     dest: /etc/apt/keyrings/docker.asc
     mode: '0644'
   become: true
-  when: not ansible_check_mode
 
 - name: Set read permissions for all users on Docker GPG key
   file:
     path: /etc/apt/keyrings/docker.asc
     mode: '0644'
   become: true
-  when: not ansible_check_mode
 
 - name: Add Docker APT repository
   shell: |
@@ -58,13 +52,11 @@
     $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
     tee /etc/apt/sources.list.d/docker.list > /dev/null
   become: true
-  when: not ansible_check_mode
 
 - name: Update the APT package index
   apt:
     update_cache: yes
   become: true
-  when: not ansible_check_mode
 
 - name: Install Docker packages
   apt:
@@ -76,7 +68,6 @@
       - docker-compose-plugin
     state: present
   become: true
-  when: not ansible_check_mode
 
 - name: Add the current user to the docker group
   user:
@@ -84,7 +75,6 @@
     groups: docker
     append: yes
   become: true
-  when: not ansible_check_mode
 
 - name: Copy docker-compose.yaml to home directory
   copy:
@@ -92,18 +82,15 @@
     dest: "{{ compose_file_path }}"
     mode: '0644'
   become: true
-  when: not ansible_check_mode
 
 - name: Stop Docker Compose
   shell: "docker compose -f {{ compose_file_path }} down"
   # args:
   #   chdir: "{{ compose_file_dir }}"
   become: true
-  when: not ansible_check_mode
 
 - name: Start Docker Compose
   shell: "docker compose -f {{ compose_file_path }} up -d"
   # args:
   #   chdir: "{{ compose_file_dir }}"
   become: true
-  when: not ansible_check_mode
