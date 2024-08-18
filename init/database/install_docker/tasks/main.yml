@@ -1,3 +1,7 @@
+- name: Check Ansible temporary directory
+  debug:
+    var: ansible_env.TMPDIR
+
 - name: Remove conflicting Docker and container-related packages
   apt:
     name: "{{ item }}"
@@ -32,12 +36,30 @@
     mode: '0755'
   become: true
 
+- name: Verify Docker GPG key before download
+  stat:
+    path: /etc/apt/keyrings/docker.asc
+  register: before_download
+
+- name: Print before download status
+  debug:
+    var: before_download
+
 - name: Download Docker GPG key
   ansible.builtin.get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
     dest: /etc/apt/keyrings/docker.asc
     mode: '0644'
   become: true
+
+- name: Verify Docker GPG key after download
+  stat:
+    path: /etc/apt/keyrings/docker.asc
+  register: after_download
+
+- name: Print after download status
+  debug:
+    var: after_download
 
 - name: Set read permissions for all users on Docker GPG key
   file:
