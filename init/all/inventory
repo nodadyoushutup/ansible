@@ -2,10 +2,10 @@
 ansible_host=146.115.179.178
 
 [all]
-vault ansible_port=10122
-monitoring ansible_port=10222
-database ansible_port=10322
-npm ansible_port=10422
+vault ansible_port=10222
+monitoring ansible_port=10422
+database ansible_port=10122
+npm ansible_port=10322
 development ansible_port=10522
 k3s_master_1 ansible_port=20022
 k3s_master_2 ansible_port=20122
