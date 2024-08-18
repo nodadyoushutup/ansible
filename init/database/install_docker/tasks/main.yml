@@ -75,3 +75,17 @@
     dest: "/home/{{ ansible_user }}/docker-compose.yaml"
     mode: '0644'
   become: true
+
+- name: Add Postgres user environment variable to user's .bashrc
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: "export POSTGRES_USER={{ lookup('env', 'POSTGRES_USER') | default('postgres', true) }}"
+    create: yes
+  become: true
+
+- name: Add Postgres password environment variable to user's .bashrc
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: "export POSTGRES_PASSWORD={{ lookup('env', 'POSTGRES_PASSWORD') | default('postgres', true) }}"
+    create: yes
+  become: true
