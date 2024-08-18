@@ -44,6 +44,7 @@
     path: /etc/apt/keyrings/docker.asc
     mode: '0644'
   become: true
+  when: not ansible_check_mode
 
 - name: Add Docker APT repository
   shell: |
