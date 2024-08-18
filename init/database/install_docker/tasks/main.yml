@@ -69,6 +69,13 @@
     state: present
   become: true
 
+- name: Add the current user to the docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+  become: true
+
 - name: Copy docker-compose.yaml to home directory
   copy:
     src: /mnt/workspace/docker-compose.yaml
