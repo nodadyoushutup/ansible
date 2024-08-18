@@ -1,0 +1,6 @@
+---
+- name: Update and install core packages
+  hosts: all
+  become: true
+  roles:
+    - role: install_docker

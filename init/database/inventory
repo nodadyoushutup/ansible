@@ -1,0 +1,5 @@
+[database:vars]
+ansible_host=146.115.179.178
+
+[database]
+database ansible_port=10322
