@@ -10,4 +10,4 @@
     - podman-docker
     - containerd
     - runc
-  become: yes
+  become: true
