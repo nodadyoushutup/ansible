@@ -38,3 +38,20 @@
     dest: /etc/apt/keyrings/docker.asc
     mode: '0644'
   become: true
+
+- name: Set read permissions for all users on Docker GPG key
+  file:
+    path: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+  become: true
+
+---
+# tasks/main.yml
+
+- name: Add Docker APT repository
+  shell: |
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+    https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+  become: true
