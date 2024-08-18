@@ -1,3 +1,0 @@
-docker_package_name: docker-ce
-docker_service_name: docker
-docker_compose_version: "1.29.2"
