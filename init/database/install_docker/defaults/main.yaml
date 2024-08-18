@@ -3,6 +3,13 @@ compose_file_path: /home/{{ ansible_user }}/docker-compose.yaml
 docker_add_repo: true
 docker_repo_url: https://download.docker.com/linux
 
+docker_edition: 'ce'
+docker_packages:
+  - docker-{{ docker_edition }}
+  - docker-{{ docker_edition }}-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
 docker_obsolete_packages:
   - docker.io 
   - docker-doc 
